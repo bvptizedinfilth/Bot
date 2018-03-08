@@ -1,0 +1,370 @@
+import time
+import os.path
+import openpyxl
+ 
+from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium import webdriver
+from openpyxl import Workbook
+import win32ui, win32gui
+import selenium.webdriver.chrome.service as service
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select
+import win32com.client as comclt
+import datetime
+import re
+import sys
+from datetime import datetime
+import pytz
+ 
+wsh = comclt.Dispatch("WScript.Shell")
+ 
+categoryList = []
+categoryList.append("jackets")
+categoryList.append("shirts")
+categoryList.append("tops/sweaters")
+categoryList.append("sweatshirts")
+categoryList.append("pants")
+categoryList.append("hats")
+categoryList.append("bags")
+categoryList.append("accessories")
+categoryList.append("shoes")
+categoryList.append("skate")
+ 
+def readPath():
+    f = open("chromepath.txt", "r").readlines()
+    makeitastring = ''.join(map(str, f))
+chromePath = readPath()
+ 
+service = service.Service('chromedriver.exe')
+capabilities = {'chrome.binary': chromePath}
+ 
+def checkIfCategory():
+    categoryInput = input("Select type: jackets, shirts, tops/sweaters, sweatshirts, pants, hats, bags, accessories, shoes, skate \n")
+    selected = "nothing"
+    for category in categoryList:
+        if categoryInput == category:
+            selected = category
+    if selected == "nothing":
+        print("Please enter one of the listed categories exactly")
+        return checkIfCategory()
+    elif selected != "nothing":
+        string = "Selected Category: "
+        string += selected
+        print(string)
+        return selected
+       
+keywords = []
+ 
+def selectKeywords():
+    keywordsInput = input("Select keywords, use a comma to separate tags and don't use any spaces e.g. Reflective,Sleeve,Logo,Puffer \n")
+    split = keywordsInput.strip().split(",")
+    for splits in split:
+        keywords.append(splits)
+ 
+sizeC = 0
+ 
+def selectSize():
+    print("Select Size (Alternatively simply enter 'D' for the first available size)")
+    if selectedCategory == "jackets" or selectedCategory == "shirts" or selectedCategory == "tops/sweaters" or selectedCategory == "sweatshirts":
+        string = "Possible Sizes for "
+        string += selectedCategory
+        string += ": Small, Medium, Large, XLarge"
+        print(string)
+        sizeInput = input("Select size: ")
+        if sizeInput == "Small" or sizeInput == "Medium" or sizeInput == "Large" or sizeInput == "XLarge":
+            print("Success")
+            return sizeInput
+        elif sizeInput != "Small" or sizeInput != "Medium" or sizeInput != "Large" or sizeInput != "XLarge":
+            print("Please enter one of the listed sizes exactly")
+            print(sizeInput)
+            return selectSize()
+       
+        print(string)
+    else:
+        sizeInput = input("Select size: ")
+        if sizeInput == "D":
+            sizeC = 1
+        elif sizeInput != "D":
+            siceC = 2
+        return sizeInput
+ 
+def selectColour():
+    colour = input("Select a colour/model (please use a capital letter e.g. Black/Red/Blue) ")
+    text = "Selected colour: "
+    text += colour
+    answer = input("Is this the colour you want to select? (Y/N) ")
+    if answer == "Y":
+        print(text)
+        return colour
+    elif answer == "N":
+        return selectColour()
+ 
+def listOptions():
+    print("-------------------------------------")
+    category = "Selected Category: "
+    category += selectedCategory
+    print(category)
+    print("Selected Keywords: ")
+    print(keywords)
+    print("Selected Size: ")
+    print(selectedSize)
+    colour = "Selected Colour: "
+    colour += selectedColour
+    print(colour)
+  
+    print("-------------------------------------\n")
+ 
+checkedListings = []
+ 
+def selectName():
+    name = input("Enter Name: ")
+    return name
+ 
+def selectEmail():
+    email = input("Enter Email: ")
+    return email
+ 
+def selectPhone():
+    phone = input("Enter Phone Number: ")
+    return phone
+ 
+def selectAdd1():
+    add1 = input("Enter Address 1: ")
+    return add1
+ 
+def selectAdd2():
+    add2 = input("Enter Address 2: ")
+    return add2
+ 
+def selectAdd3():
+    add3 = input("Enter Address 3: ")
+    return add3
+ 
+def selectCity():
+    city = input("Enter City: ")
+    return city
+ 
+def selectPostcode():
+    postcode = input("Enter Postcode: ")
+    return postcode
+ 
+def selectCardno():
+    cardno = input("Enter Card Number: ")
+    return cardno
+ 
+def selectCardx():
+    cardX = input("Enter Card CVV: ")
+    return cardX
+ 
+def selectCardx1():
+    cardX1 = input("Enter Card Month Expire Date (e.g. 05 for may): ")
+    return cardX1
+ 
+def selectCardx2():
+    cardX2 = input("Enter Card Month Expire Year: ")
+    return cardX2
+cardType1 = 0
+ 
+def selectCardType():
+    cardX2 = input("Enter Payment Type (e.g. Solo, Visa, PayPal): ")
+    if cardX2 == "PayPal":
+        cardType1 = 1
+    return cardX2
+ 
+def check_exists_by_xpath(xpath, driver):
+    try:
+        myElem = WebDriverWait(driver, 1).until(EC.presence_of_element_located((By.XPATH, xpath)))
+        return driver.find_element_by_xpath(xpath)
+    except NoSuchElementException:
+        myElem = WebDriverWait(driver, 1).until(EC.presence_of_element_located((By.XPATH, xpath)))
+        return driver.find_element_by_xpath(xpath)
+    return True
+ 
+def returnTime():
+    timeS = "Please enter the hour of the drop "
+       
+    isTime = input(timeS)
+    dropTime = int(isTime)
+    text = "Drop selected for "
+    text += isTime
+    text += ":00"
+    text += " the program will automatically run at this time. Please do not close the web browser or cmd box."
+    print(text)
+    while True:
+        ts = time.time()
+        houra = datetime.fromtimestamp(ts).strftime('%H')
+        hour = int(houra)
+        if hour >= dropTime:
+            break
+ 
+def openChrome():
+    service.start()
+    driver = webdriver.Remote(service.service_url, capabilities)
+ 
+    returnTime()
+    url = 'http://www.supremenewyork.com/shop/all/'
+    url += selectedCategory
+    driver.get(url);
+    listings = driver.find_elements_by_class_name("name-link")
+    for i in range(0, len(listings), 1):
+        if i % 2 != 0:
+            text = listings[i-1].text
+            split = text.strip().split(" ")
+            matches = 0
+            colour = 0
+            for keyword in keywords:
+                for splits in split:
+                    if keyword == splits:
+                        matches += 1
+            coloura = listings[i].text
+            if selectedColour == coloura:
+                colour = 1
+            if matches != 0:
+                matches += colour
+            checkedListings.append(matches)
+    largestMatch = 0
+    for i in range(0, len(checkedListings), 1):
+        if checkedListings[i] > largestMatch:
+            largestMatch = i
+            if i == 0 or i == 1:
+                largestMatch = 0
+ 
+    listings[largestMatch * 2].click()
+ 
+    time.sleep(0.8)
+ 
+    if sizeC == 1:
+        size = Select(driver.find_element_by_id("size"))
+        size.select_by_visible_text(selectedSize)
+ 
+    try:
+        add = driver.find_element_by_xpath("""//*[@id="add-remove-buttons"]/input""")
+        add.click()
+    except NoSuchElementException:
+        print("Sorry the item is sold out!")
+        return
+ 
+    time.sleep(0.5)
+    cart = check_exists_by_xpath("""//*[@id="cart"]/a[2]""", driver)
+    cart.click()
+ 
+ 
+    name = check_exists_by_xpath("""//*[@id="order_billing_name"]""", driver)
+    name.send_keys(selectedName)
+ 
+    email = check_exists_by_xpath("""//*[@id="order_email"]""", driver)
+    email.send_keys(selectedEmail)
+ 
+    phone = check_exists_by_xpath("""//*[@id="order_tel"]""", driver)
+    phone.send_keys(selectedPhone)
+ 
+    add1 = check_exists_by_xpath("""//*[@id="bo"]""", driver)
+    add1.send_keys(selectedAdd1)
+ 
+    add2 = check_exists_by_xpath("""//*[@id="oba3"]""", driver)
+    add2.send_keys(selectedAdd2)
+ 
+    add3 = check_exists_by_xpath("""//*[@id="order_billing_address_3"]""", driver)
+    add3.send_keys(selectedAdd3)
+ 
+    city = check_exists_by_xpath("""//*[@id="order_billing_city"]""", driver)
+    city.send_keys(selectedCity)
+ 
+    postcode = check_exists_by_xpath("""//*[@id="order_billing_zip"]""", driver)
+    postcode.send_keys(selectedPostcode)
+    if cardType1 != 1:
+        cardno = check_exists_by_xpath("""//*[@id="cnb"]""", driver)
+        cardno.send_keys(selectedCardno)
+ 
+        cvv = check_exists_by_xpath("""//*[@id="vval"]""", driver)
+        cvv.send_keys(selectedCardCVV)
+ 
+        cardType = Select(driver.find_element_by_id("credit_card_type"))
+        cardType.select_by_visible_text(selectedCardType)
+ 
+        expiraryDate1 = Select(driver.find_element_by_id("credit_card_month"))
+        expiraryDate1.select_by_visible_text(selectedCardx1)
+ 
+        expiraryDate2 = Select(driver.find_element_by_id("credit_card_year"))
+        expiraryDate2.select_by_visible_text(selectedCardx2)
+ 
+    tickBox = driver.find_element_by_xpath("""//*[@id="cart-cc"]/fieldset/p/label/div/ins""")
+    tickBox.click()
+   
+    complete = check_exists_by_xpath("""//*[@id="pay"]/input""", driver)
+    complete.click()
+
+
+selectedCategory = checkIfCategory()
+selectKeywords()
+selectedSize = selectSize()
+selectedColour = selectColour()
+listOptions()
+ 
+def displayDetails():
+    print("-------------------------------------")
+    print("Billing information and address.")
+    name = "Selected Name: "
+    name += selectedName
+    print(name)
+    email = "Selected Email: "
+    email += selectedEmail
+    print(email)
+    phone = "Selected Phone Number: "
+    phone += selectedPhone
+    print(phone)
+    add1 = "Selected Address 1: "
+    add1 += selectedAdd1
+    print(name)
+    add2 = "Selected Address 2: "
+    add2 += selectedAdd2
+    print(add2)
+    add3 = "Selected Address 3: "
+    add3 += add3
+    print(add3)
+    city = "Selected City: "
+    city += selectedCity
+    print(city)
+    postcode = "Selected Postcode: "
+    postcode += selectedPostcode
+    print(postcode)
+    cardno = "Selected Card Number: "
+    cardno += selectedCardno
+    print(cardno)
+    cvv = "Selected CVV: "
+    cvv += selectedCardCVV
+    print(cvv)
+    cardx1 = "Selected Card Expiry Month: "
+    cardx1 += selectedCardx1
+    print(cardx1)
+    cardx2 = "Selected Card Expiry Year: "
+    cardx2 += selectedCardx2
+    print(cardx2)
+    cardtype = "Selected Card Type: "
+    cardtype += selectedCardType
+    print(cardtype)
+    print("If any of this information is wrong please restart the program and start again.")
+    print("-------------------------------------")
+ 
+selectedName = selectName()
+selectedEmail = selectEmail()
+selectedPhone = selectPhone()
+selectedAdd1 = selectAdd1()
+selectedAdd2 = selectAdd2()
+selectedAdd3 = selectAdd3()
+selectedCity = selectCity()
+selectedPostcode = selectPostcode()
+selectedCardno = selectCardno()
+selectedCardCVV = selectCardx()
+selectedCardx1 = selectCardx1()
+selectedCardx2 = selectCardx2()
+selectedCardType = selectCardType()
+displayDetails()
+openChrome()
